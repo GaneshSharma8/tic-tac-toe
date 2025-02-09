@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin'); // Correct import
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     mode: "development",
@@ -37,6 +38,7 @@ module.exports = {
                 { from: 'src/style.css', to: 'style.css' }, // Copy CSS to `dist`
             ],
         }),
+        new Dotenv(),
     ],
     output: {
         filename: 'sketch.js',
