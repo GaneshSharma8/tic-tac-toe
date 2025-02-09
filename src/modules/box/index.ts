@@ -1,15 +1,12 @@
-import p5, { Color } from "p5";
-
+import { DrawingService } from '../draw'; // Adjust import path for your project
 
 export interface BoxCreationAttributes {
-  colour: Color;
+  colour: string; // Storing color as string for flexibility
   dimensions: IDimensions;
   position: IPoint;
 }
 
-export interface IBox extends BoxCreationAttributes {
-
-}
+export interface IBox extends BoxCreationAttributes {}
 
 export interface IPoint {
   x: number;
@@ -23,24 +20,38 @@ export interface IDimensions {
 }
 
 export default class Box {
-  private colour: Color;
+  private colour: string; // Store color as string
+  private symbol: string | null = null;
   private dimensions: IDimensions;
   private position: IPoint;
   private clicked: boolean = false;
 
   constructor(input: BoxCreationAttributes) {
     const { colour, dimensions, position } = input;
-
     this.colour = colour;
     this.dimensions = dimensions;
     this.position = position;
   }
 
-  public getColour() {
-    return this.colour;
+  public getSymbol() {
+    return this.symbol;
   }
 
-  public setColour(colour: Color) {
+  public setSymbol(symbol: string) {
+    this.symbol = symbol;
+  }
+
+  public getColour(options?: { asString: boolean }) {
+    const { asString } = options || {};
+
+    if (asString) {
+      return this.colour;
+    }
+
+    return this.colour; // Return the color as string
+  }
+
+  public setColour(colour: string) {
     this.colour = colour;
   }
 
@@ -48,45 +59,51 @@ export default class Box {
     this.clicked = value;
   }
 
-  public toggleColour(colours: p5.Color[]) {
-    // Get the current index of the colour using toString() for comparison
-    const currentIndex = colours.findIndex(color => color.toString() === this.colour.toString());
-  
-    // If the color is not found, default to 0 (for initial setup)
+  public isClicked() {
+    return this.clicked;
+  }
+
+  public toggleColour(colours: string[]) {
+    const currentIndex = colours.findIndex(color => color === this.colour);
     if (currentIndex === -1) {
       this.setColour(colours[0]);
       return;
     }
-  
-    // Update the colour to the next one in the array (loop back to 0 if at the end)
+
     const nextIndex = (currentIndex + 1) % colours.length;
-    // Set the colour to the next one in the list
     this.setColour(colours[nextIndex]);
   }
-  
 
-  public show(p: p5): void {
-    p.fill(this.colour);
-    p.rect(this.position.x, this.position.y, this.dimensions.width, this.dimensions.height);
+  /**
+   * Render the box using the drawing service
+   */
+  public show(drawingService: DrawingService): void {
+    drawingService.setFillColor(this.colour);
+    drawingService.drawRectangle(this.position.x, this.position.y, this.dimensions.width, this.dimensions.height, this.colour);
   }
 
-  public onClick(p: p5, mouseX: number, mouseY: number, callback: () => void): void {
+  /**
+   * Handle box click event, invoke callback if clicked.
+   */
+  public onClick(drawingService: DrawingService, mouseX: number, mouseY: number, callback: () => void): void {
     if (
       mouseX > this.position.x &&
       mouseX < this.position.x + this.dimensions.width &&
       mouseY > this.position.y &&
       mouseY < this.position.y + this.dimensions.height
     ) {
-      if (!this.clicked) { // Ensure the click is only processed once
+      if (!this.clicked) {
         callback();
-        this.clicked = true; // Prevent further clicks
+        this.clicked = true;
       }
     }
   }
-  
 
+  /**
+   * Static method to create multiple boxes for a grid layout
+   */
   public static drawBoxes(
-    boxConfig: { position: IPoint; rows: Array<number>; dimensions: IDimensions; colour: Color }
+    boxConfig: { position: IPoint; rows: Array<number>; dimensions: IDimensions; colour: string }
   ): Box[] {
     try {
       const { position, rows, dimensions, colour } = boxConfig;
@@ -100,14 +117,12 @@ export default class Box {
         while (columnCount < columnsInRow) {
           const newX = position.x + columnCount * dimensions.width;
 
-          // Create a new Box object
           const box = new Box({
             colour,
             dimensions,
             position: { x: newX, y: newY },
           });
 
-          // Add it to the list
           boxes.push(box);
           columnCount += 1;
         }
@@ -116,8 +131,8 @@ export default class Box {
 
       return boxes;
     } catch (error) {
-      console.error("Error in drawBoxes: ", error);
+      console.error("Error in drawBoxes:", error);
       throw error;
     }
   }
-};
+}

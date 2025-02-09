@@ -26,6 +26,9 @@
     "webpack-dev-server": "5.2.0"
   },
   "dependencies": {
+    "@babylonjs/core": "^7.47.3",
+    "babylonjs": "^7.47.3",
+    "dotenv-webpack": "8.1.0",
     "p5": "1.11.2"
   }
 }
